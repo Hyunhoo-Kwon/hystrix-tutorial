@@ -1,21 +1,41 @@
 package com.elon.hystrix.service;
 
 import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
+import com.netflix.hystrix.contrib.javanica.annotation.HystrixProperty;
+import com.netflix.hystrix.contrib.javanica.command.AsyncResult;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import rx.Observable;
 
-import java.net.URI;
+import java.util.concurrent.Future;
+
+import static com.netflix.hystrix.contrib.javanica.annotation.ObservableExecutionMode.EAGER;
 
 @Service
 public class BookService {
 
+    private static final String URL = "http://localhost:8090/recommended";
     private final RestTemplate restTemplate = new RestTemplate();
 
-    @HystrixCommand(fallbackMethod = "reliable")
-    public String readingList() {
-        URI uri = URI.create("http://localhost:8090/recommended");
+    @HystrixCommand(fallbackMethod = "reliable",
+            commandProperties = {@HystrixProperty(name = "execution.isolation.thread.timeoutInMilliseconds", value = "500")})
+    public String readingListSync() {
+        return this.restTemplate.getForObject(URL, String.class);
+    }
 
-        return this.restTemplate.getForObject(uri, String.class);
+    @HystrixCommand(fallbackMethod = "reliable")
+    public Future<String> readingListAsync() {
+        return new AsyncResult<String>() {
+            @Override
+            public String invoke() {
+                return restTemplate.getForObject(URL, String.class);
+            }
+        };
+    }
+
+    @HystrixCommand(fallbackMethod = "reliable", observableExecutionMode = EAGER)
+    public Observable<String> readingListReactive() {
+        return Observable.just(restTemplate.getForObject(URL, String.class));
     }
 
     public String reliable() {
