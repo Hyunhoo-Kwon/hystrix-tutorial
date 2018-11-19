@@ -87,14 +87,15 @@ This tutorial will use:
  @HystrixCommand
  ```
  2. 동기식/비동기식 Command 실행
-    - Synchronous:
+    - Synchronous: .execute()
     ```
     @HystrixCommand(fallbackMethod = "reliable")
     public String readingList() {
         return this.restTemplate.getForObject(URL, String.class);
     }
     ```
-    - Asynchronous:
+    - Asynchronous: .queue()
+    > AsyncResult 반환
     ```
     @HystrixCommand(fallbackMethod = "reliable")
     public Future<String> readingList() {
@@ -106,7 +107,19 @@ This tutorial will use:
         };
     }
     ```
-    - Reactive
+    - Reactive: .observe() / .toObservable()
+    > Observable 반환
+    ```
+    // observe()
+    @HystrixCommand(fallbackMethod = "reliable", observableExecutionMode = EAGER)
+    public Observable<String> readingListReactive() {
+        return Observable.just(restTemplate.getForObject(URL, String.class));
+    }
+    
+    // toObservable
+    @HystrixCommand(fallbackMethod = "reliable", observableExecutionMode = LAZY)
+    ...
+    ```
     
 ## 참고
  1. Hystrix documentation: https://github.com/Netflix/hystrix/wiki
