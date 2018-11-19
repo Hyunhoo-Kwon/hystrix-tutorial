@@ -9,7 +9,7 @@ This tutorial will use:
 ## Circuit Breaker
 ![Circuit Breaker](https://martinfowler.com/bliki/images/circuitBreaker/sketch.png)
 
-시스템 간에 원격 호출을 하는 경우 장애 전파를 방지하기 위해 [Circuit Breaker pattern](https://martinfowler.com/bliki/CircuitBreaker.html)을 이용합니다. supplier 서버의 장애로 항상 timeout이 발생하는 경우, supplier 서버를 호출한 client 서버는 timeout이 발생할때 까지 응답이 밀리게 됩니다. 응답이 밀리는 동안 요청이 계속 쌓여 client 서버의 리소스가 부족해지며 최악의 경우 여러 시스템에서 연속적으로 장애가 발생할 수 있습니다. Circuit Breaker의 기본 원리는 원격 호출을 하는 함수를 래핑하여 오류를 모니터링하고, 장애가 특정 임계치를 넘어가면 추가 호출을 하는 대신 fallback 응답을 반환합니다.
+시스템 간에 원격 호출을 하는 경우 장애 전파를 방지하기 위해 [Circuit Breaker pattern](https://martinfowler.com/bliki/CircuitBreaker.html)을 이용합니다. supplier 서버의 장애로 항상 timeout이 발생하는 경우, supplier 서버를 호출한 client 서버는 timeout이 발생할때 까지 응답이 밀리게 됩니다. 응답이 밀리는 동안 요청이 계속 쌓여 client 서버의 리소스가 부족해지며 최악의 경우 여러 시스템에서 연속적으로 장애가 발생할 수 있습니다. Circuit Breaker의 기본 원리는 원격 호출을 하는 함수를 래핑하여 오류를 모니터링하고, 장애가 특정 임계치를 넘어가면 서킷을 open 상태로 변경하고 추가 호출을 하는 대신 fallback 응답을 반환합니다.
 
 ## Hystric 적용 예제
 ### Supplier 서버 구현
@@ -83,9 +83,9 @@ This tutorial will use:
 ### [Flow Chart](https://github.com/Netflix/Hystrix/wiki/How-it-Works)
 ![Flow Chart](https://raw.githubusercontent.com/wiki/Netflix/Hystrix/images/hystrix-command-flow-chart.png)
  1. HystrixCommand 객체 생성
- ```
- @HystrixCommand
- ```
+    ```
+    @HystrixCommand
+    ```
  2. 동기식/비동기식 Command 실행
     - Synchronous: .execute()
     ```
@@ -108,7 +108,7 @@ This tutorial will use:
     }
     ```
     - Reactive: .observe() / .toObservable()
-    > Observable 반환
+    > Observable 반환. observableExecutionMode로 모드 선택.
     ```
     // observe()
     @HystrixCommand(fallbackMethod = "reliable", observableExecutionMode = EAGER)
@@ -120,6 +120,18 @@ This tutorial will use:
     @HystrixCommand(fallbackMethod = "reliable", observableExecutionMode = LAZY)
     ...
     ```
+ 3. 캐시를 사용하는가?
+ 4. 서킷이 열려있는가?
+    - 서킷이 열려있으면 Hystrix는 command를 실행하지 않고 fallback을 실행합니다
+ 5. 스레드 풀/큐/세마포어가 full인가?
+    - (스레드에서 실행 중인 경우) 스레드 풀과 큐가 가득차면 command를 실행하지 않고 fallback을 실행합니다
+    - (세마포어 사용 시) 세마포어가 가득차면 command를 실행하지 않고 fallback을 실행합니다
+ 6. HystrixCommand.run()
+ 7. 서킷 상태 계산
+    - Hystrix는 성공, 실패, 타임아웃 등을 Circuit Breaker에 보고하며 Circuit Breaker는 이를 통계내어 임계치를 넘어가면 서킷을 open(trip)상태로 변경합니다
+    - trip 상태가 되면 해당 서킷이 헬스 체크를 통해 다시 닫힐 때까지 요청이 막힙니다
+ 8. Fallback
+     - command 수행에 실패할 경우 fallback을 수행합니다
     
 ## 참고
  1. Hystrix documentation: https://github.com/Netflix/hystrix/wiki
