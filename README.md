@@ -30,6 +30,54 @@ This tutorial will use:
      compile('org.springframework.cloud:spring-cloud-starter-netflix-hystrix:2.0.2.RELEASE')
     }
     ```
+#### 2. API 호출 구현 및 Hystrix 적용
+ 1. HystrixApplication.java: 
+    - @EnableCircuitBreaker 추가
+ ```
+ @SpringBootApplication
+ @EnableCircuitBreaker
+ public class HystrixApplication {
+
+  public static void main(String[] args) {
+   SpringApplication.run(HystrixApplication.class, args);
+  }
+ }
+ ```
+ 2. BookController.java: 
+    - @ResquestMapping 설정
+ ```
+ @RestController
+ public class BookController {
+    @Autowired
+    private BookService bookService;
+
+    @RequestMapping("/to-read-sync")
+    public String readingListSync() {
+        return bookService.readingListSync();
+    }
+ }
+ ```
+ 3. BookService.java: 
+    - API를 호출하는 readingListSync 메소드에 Hystrix 적용
+    - 장애 상황에 fallbackMethod로 reliable 메소드 수행
+ ```
+ @Service
+ public class BookService {
+    private static final String URL = "http://localhost:8090/recommended";
+    private final RestTemplate restTemplate = new RestTemplate();
+
+    @HystrixCommand(fallbackMethod = "reliable",
+            commandProperties = {@HystrixProperty(name = "execution.isolation.thread.timeoutInMilliseconds", value = "500")})
+    public String readingListSync() {
+        return this.restTemplate.getForObject(URL, String.class);
+    }
+
+    public String reliable() {
+        return "Cloud Native Java (O'Reilly)";
+    }
+ }
+ ```
+ > Hystrix는 @HystrixCommand 어노테이션을 적용한 모든 메소드를 찾고, Hystrix가 이를 모니터링 할 수 있도록 circuit breaker에 연결된 프록시에 해당 메소드를 래핑합니다. @Component 또는 @Service를 적용한 클래스에서만 동작합니다.
 
 ## Hystrix 동작 방식
 ### [Flow Chart](https://github.com/Netflix/Hystrix/wiki/How-it-Works)
