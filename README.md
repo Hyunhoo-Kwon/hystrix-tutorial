@@ -78,6 +78,13 @@ This tutorial will use:
  }
  ```
  > Hystrix는 @HystrixCommand 어노테이션을 적용한 모든 메소드를 찾고, Hystrix가 이를 모니터링 할 수 있도록 circuit breaker에 연결된 프록시에 해당 메소드를 래핑합니다. @Component 또는 @Service를 적용한 클래스에서만 동작합니다.
+ 
+#### 3. Hystrix 설정
+ 1. [execution.isolation.strategy](https://github.com/Netflix/Hystrix/wiki/Configuration#execution.isolation.strategy): HystrixCommand.run() 실행 시 격리 전략 설정
+    - Thread: 서비스 호출을 별도의 스레드에서 실행. HystrixCommand 사용 시 권장
+    - Semaphore: 서비스 호출을 위한 별도의 스레드 미생성. HystrixObservableCommand 사용 시 권장
+    > Thread에서 실행 시 timeout 설정 가능. 호출량이 너무 많아 개별 스레드를 생성하는 오버헤드가 너무 많을 경우 semaphore 사용
+ 2. [execution.isolation.thread.timeoutInMilliseconds](https://github.com/Netflix/Hystrix/wiki/Configuration#execution.isolation.thread.timeoutInMilliseconds): Thread에서 실행 시 timeout 설정
 
 ## Hystrix 동작 방식
 ### [Flow Chart](https://github.com/Netflix/Hystrix/wiki/How-it-Works)
@@ -108,7 +115,7 @@ This tutorial will use:
         };
     }
     ```
-    - Reactive: .observe() / .toObservable()
+    - Reactive: [.observe() / .toObservable()](https://github.com/Netflix/Hystrix/wiki/How-To-Use#reactive-execution)
     > Observable 반환. observableExecutionMode로 모드 선택.
     ```
     // observe()
