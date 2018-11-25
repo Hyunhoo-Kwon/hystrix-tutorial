@@ -82,7 +82,8 @@ This tutorial will use:
 ## Hystrix 동작 방식
 ### [Flow Chart](https://github.com/Netflix/Hystrix/wiki/How-it-Works)
 ![Flow Chart](https://raw.githubusercontent.com/wiki/Netflix/Hystrix/images/hystrix-command-flow-chart.png)
- 1. HystrixCommand 객체 생성
+ 1. HystrixCommand / HystrixObervableCommand 객체 생성
+    - HystrixCommand / HystrixObervableCommand
     ```
     @HystrixCommand
     ```
@@ -135,4 +136,5 @@ This tutorial will use:
     
 ## 참고
  1. Hystrix documentation: https://github.com/Netflix/hystrix/wiki
- 2. Hystrix tutorial: https://spring.io/guides/gs/circuit-breaker/
+ 2. Hystrix Javanica documentation: https://github.com/Netflix/Hystrix/tree/master/hystrix-contrib/hystrix-javanica
+ 3. Hystrix tutorial: https://spring.io/guides/gs/circuit-breaker/
