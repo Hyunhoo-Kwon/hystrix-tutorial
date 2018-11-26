@@ -18,7 +18,14 @@ public class BookService {
     private final RestTemplate restTemplate = new RestTemplate();
 
     @HystrixCommand(fallbackMethod = "reliable",
-            commandProperties = {@HystrixProperty(name = "execution.isolation.thread.timeoutInMilliseconds", value = "500")})
+            commandProperties = {
+                @HystrixProperty(name = "execution.isolation.thread.timeoutInMilliseconds", value = "1000"),
+                @HystrixProperty(name = "circuitBreaker.requestVolumeThreshold", value = "4"),
+                @HystrixProperty(name = "circuitBreaker.errorThresholdPercentage", value = "50")
+            },
+            threadPoolProperties = {
+                @HystrixProperty(name = "metrics.rollingStats.timeInMilliseconds", value = "10000")
+            })
     public String readingListSync() {
         return this.restTemplate.getForObject(URL, String.class);
     }
@@ -33,7 +40,8 @@ public class BookService {
         };
     }
 
-    @HystrixCommand(fallbackMethod = "reliable", observableExecutionMode = EAGER)
+    @HystrixCommand(fallbackMethod = "reliable", observableExecutionMode = EAGER,
+            commandProperties = {@HystrixProperty(name = "execution.isolation.strategy", value = "SEMAPHORE")})
     public Observable<String> readingListReactive() {
         return Observable.just(restTemplate.getForObject(URL, String.class));
     }
