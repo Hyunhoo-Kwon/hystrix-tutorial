@@ -61,7 +61,8 @@ public class BookService {
                 .from(readingListReactor())
                 .fallback(Mono.just("webclient fallback"))
                 .commandName("readingListReactor")
-                .toMono();
+                // .toMono(); // Todo. hystrix 버전 업 필요. Hystrix issue(https://github.com/spring-cloud/spring-cloud-netflix/issues/2708)
+                .toFlux().singleOrEmpty();
     }
 
     public String reliable() {
