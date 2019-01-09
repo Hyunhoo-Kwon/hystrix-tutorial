@@ -3,8 +3,11 @@ package com.elon.hystrix.service;
 import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
 import com.netflix.hystrix.contrib.javanica.annotation.HystrixProperty;
 import com.netflix.hystrix.contrib.javanica.command.AsyncResult;
+import org.springframework.cloud.netflix.hystrix.HystrixCommands;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 import rx.Observable;
 
 import java.util.concurrent.Future;
@@ -44,6 +47,21 @@ public class BookService {
             commandProperties = {@HystrixProperty(name = "execution.isolation.strategy", value = "SEMAPHORE")})
     public Observable<String> readingListReactive() {
         return Observable.just(restTemplate.getForObject(URL, String.class));
+    }
+
+    public Mono<String> readingListReactor() {
+        return WebClient.create(URL).get()
+                .retrieve()
+                .bodyToMono(String.class)
+                ;
+    }
+
+    public Mono<String> readingListReactorWrappedWithHystrix() {
+        return HystrixCommands
+                .from(readingListReactor())
+                .fallback(Mono.just("webclient fallback"))
+                .commandName("readingListReactor")
+                .toMono();
     }
 
     public String reliable() {

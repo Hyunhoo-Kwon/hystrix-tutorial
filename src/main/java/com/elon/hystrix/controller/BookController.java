@@ -4,6 +4,7 @@ import com.elon.hystrix.service.BookService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import reactor.core.publisher.Mono;
 import rx.Single;
 
 import java.util.concurrent.ExecutionException;
@@ -27,5 +28,10 @@ public class BookController {
     @RequestMapping("/to-read-reactive")
     public Single<String> readingListReactive() {
         return bookService.readingListReactive().toSingle();
+    }
+
+    @RequestMapping("/to-read-reactor")
+    public Mono<String> readingListReactor() {
+        return bookService.readingListReactorWrappedWithHystrix();
     }
 }
